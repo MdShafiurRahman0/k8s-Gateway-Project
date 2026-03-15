@@ -1,92 +1,97 @@
-# 🚀 Modern K8s Traffic Management: Gateway API & Envoy Gateway
+# 🚀 Modern K8s Traffic Management with Gateway API & Envoy Gateway
 
-এই প্রোজেক্টে আমি **Kubernetes-এর next-generation networking standard Gateway API এবং Envoy Gateway** ব্যবহার করে একটি **microservice routing system** তৈরি করেছি।
+এই প্রোজেক্টে আমি **Kubernetes-এর next-generation networking standard — Gateway API এবং Envoy Gateway** ব্যবহার করে একটি **microservice routing system** তৈরি করেছি।
 
-এটি traditional **Ingress**-এর একটি **modern, flexible, এবং powerful alternative**।
+এই system ব্যবহার করে **একটি single gateway থেকে multiple microservice-এ traffic route করা যায়**।
 
----
-
-# 🎯 Project Purpose & Goals
-
-বর্তমানে Kubernetes networking layer-এ traditional **Ingress**-এর কিছু limitation রয়েছে।
-এই limitation overcome করার জন্য **Gateway API** ধীরে ধীরে **industry standard** হিসেবে adopt করা হচ্ছে।
-
-এই প্রোজেক্টের মাধ্যমে আমি নিচের বিষয়গুলো implement করেছি:
-
-### Modern Traffic Management
-
-traditional Ingress-এর বদলে modern **Gateway** এবং **HTTPRoute** resource ব্যবহার করেছি।
-
-### Smart Routing
-
-**Path-based routing** logic ব্যবহার করে incoming traffic different microservice-এ forward করা হয়েছে।
-
-### Separation of Concerns
-
-infrastructure layer এবং application routing logic আলাদা রাখা হয়েছে।
-
-### Local Cloud Lab
-
-**Kind** এবং **MetalLB** ব্যবহার করে local machine-এই **LoadBalancer IP setup** করা হয়েছে।
+Traditional **Kubernetes Ingress** এর তুলনায় এটি অনেক বেশি **flexible, scalable এবং modern**।
 
 ---
 
-# 🏗️ Architecture
+# 🎯 What This Project Demonstrates
 
-এই প্রোজেক্টে একটি **single entry point (Gateway)** ব্যবহার করে path অনুযায়ী traffic route করা হয়েছে।
+এই project করার মাধ্যমে নিচের গুরুত্বপূর্ণ Kubernetes networking concept গুলো বোঝা যাবে:
+
+* Modern **Gateway API based traffic management**
+* **Envoy Gateway controller setup**
+* **HTTPRoute based routing**
+* **Path based microservice routing**
+* **Local Kubernetes cluster using Kind**
+* **Local LoadBalancer setup using MetalLB**
+
+---
+
+# 🏗️ Architecture Overview
+
+এই project-এ একটি **single entry gateway** ব্যবহার করা হয়েছে।
+
+Gateway request receive করে **path অনুযায়ী traffic different service-এ forward করে**।
 
 ```
-http://localhost:8080/red   →  app-red  🔴
-http://localhost:8080/blue  →  app-blue 🔵
+http://localhost:8080/red   →   app-red   🔴
+http://localhost:8080/blue  →   app-blue  🔵
 ```
+
+অর্থাৎ:
+
+| URL     | Routed Service |
+| ------- | -------------- |
+| `/red`  | app-red        |
+| `/blue` | app-blue       |
 
 ---
 
-# 📂 File Structure
-
-প্রোজেক্টটি **modular structure**-এ organize করা হয়েছে।
+# 📂 Project Structure
 
 ```
 .
 ├── cluster
 │   ├── kind-config.yaml
 │   └── metallb-config.yaml
+│
 ├── gateway
 │   ├── gateway-class.yaml
 │   └── gateway-route.yaml
+│
 └── apps
     └── apps.yaml
 ```
 
 ---
 
-# 📄 File Description
+# 📄 File Explanation
 
-| File / Folder                 | Description                                  |
-| ----------------------------- | -------------------------------------------- |
-| `cluster/kind-config.yaml`    | Multi-node Kind cluster configuration        |
-| `cluster/metallb-config.yaml` | MetalLB IP address pool configuration        |
-| `gateway/gateway-class.yaml`  | Envoy Gateway controller configuration       |
-| `gateway/gateway-route.yaml`  | Gateway + HTTPRoute traffic routing logic    |
-| `apps/apps.yaml`              | Backend microservices (app-red and app-blue) |
-
----
-
-# 🛠️ Step-by-Step Setup Guide
-
-নিচের command গুলো **serially run করে পুরো environment setup করুন।**
+| File                        | Purpose                               |
+| --------------------------- | ------------------------------------- |
+| cluster/kind-config.yaml    | Multi node Kind cluster configuration |
+| cluster/metallb-config.yaml | MetalLB IP pool configuration         |
+| gateway/gateway-class.yaml  | Envoy GatewayClass definition         |
+| gateway/gateway-route.yaml  | Gateway + HTTPRoute configuration     |
+| apps/apps.yaml              | Backend services (app-red & app-blue) |
 
 ---
 
-## 1️⃣ Create the Kind Cluster
+# ⚙️ Complete Setup Guide
+
+নিচের **steps sequentially follow করলে পুরো environment setup হয়ে যাবে।**
+
+---
+
+# 1️⃣ Create the Kubernetes Cluster (Kind)
 
 ```bash
 kind create cluster --config cluster/kind-config.yaml
 ```
 
+Kind ব্যবহার করে local machine-এ Kubernetes cluster তৈরি হবে।
+
 ---
 
-## 2️⃣ Install and Configure MetalLB
+# 2️⃣ Install MetalLB (LoadBalancer Support)
+
+Kind cluster-এ default ভাবে **LoadBalancer support থাকে না**।
+
+সেই জন্য **MetalLB install করতে হবে**।
 
 ### Install MetalLB
 
@@ -100,11 +105,15 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/conf
 kubectl apply -f cluster/metallb-config.yaml
 ```
 
+এখন cluster-এ **LoadBalancer IP allocate করা সম্ভব হবে।**
+
 ---
 
-## 3️⃣ Install Envoy Gateway
+# 3️⃣ Install Envoy Gateway
 
-### Install Envoy Gateway and Required CRDs
+Envoy Gateway হলো **Gateway API controller**।
+
+### Install Envoy Gateway CRDs + Controller
 
 ```bash
 kubectl apply --server-side -f https://github.com/envoyproxy/gateway/releases/download/v1.0.1/install.yaml
@@ -118,25 +127,36 @@ kubectl apply -f gateway/gateway-class.yaml
 
 ---
 
-## 4️⃣ Deploy Applications and Routing
+# 4️⃣ Deploy Applications
 
-### Deploy Backend Applications
+এই step-এ **backend services deploy করা হবে।**
 
 ```bash
 kubectl apply -f apps/apps.yaml
 ```
 
-### Deploy Gateway and HTTPRoute
+এতে দুটি service deploy হবে:
+
+* app-red
+* app-blue
+
+---
+
+# 5️⃣ Deploy Gateway + HTTPRoute
+
+এখন gateway এবং routing rule deploy করতে হবে।
 
 ```bash
 kubectl apply -f gateway/gateway-route.yaml
 ```
 
+এখন Gateway API traffic route করতে পারবে।
+
 ---
 
 # 🧪 Verification
 
-সবকিছু deploy হওয়ার পর নিচের command দিয়ে **Envoy Gateway service-এ port-forward করুন।**
+Envoy Gateway service-এ **port forward** করতে হবে।
 
 ```bash
 kubectl port-forward svc/$(kubectl get svc -n envoy-gateway-system --no-headers -o custom-columns=":metadata.name" | grep envoy-default) -n envoy-gateway-system 8080:80
@@ -144,9 +164,9 @@ kubectl port-forward svc/$(kubectl get svc -n envoy-gateway-system --no-headers 
 
 ---
 
-# 🌐 Test the Application
+# 🌐 Test the Routing
 
-এখন browser-এ নিচের URL গুলো test করুন:
+Browser-এ নিচের URL open করুন:
 
 ```
 http://localhost:8080/red
@@ -155,20 +175,32 @@ http://localhost:8080/blue
 
 ---
 
-# ✅ Expected Result
+# ✅ Expected Output
 
-* `/red` path এ গেলে **app-red service** response দিবে 🔴
-* `/blue` path এ গেলে **app-blue service** response দিবে 🔵
+| URL   | Result            |
+| ----- | ----------------- |
+| /red  | app-red response  |
+| /blue | app-blue response |
 
 ---
 
-# 📚 Learning Outcomes
+# 📚 What You Learn From This Project
 
-এই project করার মাধ্যমে নিচের concept গুলো clear হবে:
+এই project করার মাধ্যমে আপনি শিখবেন:
 
 * Kubernetes Gateway API
-* Envoy Gateway setup
+* Envoy Gateway Controller
 * HTTPRoute traffic routing
-* Path-based microservice routing
+* Path based routing
 * Kind local Kubernetes cluster
 * MetalLB LoadBalancer configuration
+
+---
+
+# 👨‍💻 Author
+
+Md. Shafiur Rahman
+
+Cloud & Security Enthusiast
+DevOps Learner
+Kubernetes Practitioner
