@@ -7,6 +7,7 @@
 Traditional **Kubernetes Ingress** এর তুলনায় এটি অনেক বেশি **flexible, scalable এবং modern**।
 
 DEMO : 
+2026-03-16_00h15_39.png
 **https://drive.google.com/file/d/1f-5r4SW5dIRx2Craafl2z-qLEE5IyJ5n/view?usp=drive_link**
 
 ---
