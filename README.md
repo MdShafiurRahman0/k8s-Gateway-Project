@@ -6,6 +6,9 @@
 
 Traditional **Kubernetes Ingress** এর তুলনায় এটি অনেক বেশি **flexible, scalable এবং modern**।
 
+DEMO : 
+
+
 ---
 
 # 🎯 What This Project Demonstrates
