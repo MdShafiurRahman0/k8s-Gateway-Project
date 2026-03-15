@@ -1,60 +1,81 @@
-🚀 Modern K8s Traffic Management: Gateway API & Envoy Gateway
-এই প্রোজেক্টে আমি কুবারনেটেসের পরবর্তী প্রজন্মের নেটওয়ার্কিং স্ট্যান্ডার্ড Gateway API এবং Envoy Gateway ব্যবহার করে একটি মাইক্রোসার্ভিস রাউটিং সিস্টেম তৈরি করেছি। এটি প্রথাগত Ingress-এর একটি আধুনিক, ফ্লেক্সিবল এবং শক্তিশালী বিকল্প।
+# 🚀 Modern K8s Traffic Management: Gateway API & Envoy Gateway
 
-🎯 প্রোজেক্টের উদ্দেশ্য ও লক্ষ্য (Purpose & Goals)
-বর্তমানে কুবারনেটেস নেটওয়ার্কিং লেয়ারে Ingress-এর সীমাবদ্ধতা দূর করতে Gateway API ব্যবহৃত হচ্ছে। এই প্রোজেক্টের মাধ্যমে আমি নিচের বিষয়গুলো ইমপ্লিমেন্ট করেছি:
+এই প্রোজেক্টে আমি Kubernetes-এর next-generation networking standard **Gateway API** এবং **Envoy Gateway** ব্যবহার করে একটি microservice routing system তৈরি করেছি। এটি traditional **Ingress**-এর একটি modern, flexible, এবং powerful alternative।
 
-আধুনিক ট্রাফিক ম্যানেজমেন্ট: প্রাচীন Ingress-এর বদলে আধুনিক Gateway এবং HTTPRoute রিসোর্স ব্যবহার।
-স্মার্ট রাউটিং: পাথ-বেসড রাউটিং (Path-based routing) লজিক ব্যবহার করে ট্রাফিক ডাইভার্ট করা।
-ইন্ডাস্ট্রি স্ট্যান্ডার্ড: ইনফ্রাস্ট্রাকচার এবং অ্যাপ্লিকেশন রাউটিংকে আলাদা করা (Separation of Concerns)।
-লোকাল ক্লাউড ল্যাব: Kind এবং MetalLB ব্যবহার করে নিজের পিসিতেই লোড-ব্যালেন্সার আইপি সেটআপ।
-🏗️ আর্কিটেকচার (Architecture)
-এই প্রোজেক্টে একটি সিঙ্গেল এন্ট্রি পয়েন্ট (Gateway) ব্যবহার করে পাথের ভিত্তিতে ট্রাফিক আলাদা করা হয়েছে:
+---
 
-http://localhost:8080/red ➡️ app-red (Microservice A) 🔴
-http://localhost:8080/blue ➡️ app-blue (Microservice B) 🔵
-📂 ফাইল স্ট্রাকচার (File Structure)
-প্রোজেক্টটি একটি মডুলার আর্কিটেকচারে সাজানো হয়েছে:
+## 🎯 Project Purpose & Goals
 
-ফোল্ডার/ফাইল	বর্ণনা
-cluster/kind-config.yaml	মাল্টি-নোড (Multi-node) ক্লাস্টার কনফিগারেশন।
-cluster/metallb-config.yaml	লোকাল লোড-ব্যালেন্সার (MetalLB) আইপি রেঞ্জ সেটআপ।
-gateway/gateway-class.yaml	Envoy Gateway কন্ট্রোলার ডিফাইন করা।
-gateway/gateway-route.yaml	ট্রাফিক রাউটিং লজিক (HTTPRoute)।
-apps/apps.yaml	ব্যাকএন্ড মাইক্রোসার্ভিসসমূহ (Red & Blue App)।
-🛠️ সেটআপ গাইড (Step-by-Step Setup)
-নিচের কমান্ডগুলো সিরিয়াল অনুযায়ী রান করে পুরো এনভায়রনমেন্ট তৈরি করুন:
+বর্তমানে Kubernetes networking layer-এ traditional Ingress-এর কিছু limitation রয়েছে। সেই limitation overcome করার জন্য **Gateway API** ধীরে ধীরে industry standard হিসেবে adopt করা হচ্ছে।
 
-১. ক্লাস্টার তৈরি করা
+এই প্রোজেক্টের মাধ্যমে আমি নিচের বিষয়গুলো implement করেছি:
+
+- **Modern Traffic Management:** traditional Ingress-এর বদলে modern `Gateway` এবং `HTTPRoute` resource ব্যবহার করেছি।
+- **Smart Routing:** path-based routing logic ব্যবহার করে incoming traffic different microservice-এ forward করা হয়েছে।
+- **Separation of Concerns:** infrastructure layer এবং application routing logic আলাদা রাখা হয়েছে।
+- **Local Cloud Lab:** `Kind` এবং `MetalLB` ব্যবহার করে local machine-এই load balancer IP setup করা হয়েছে।
+
+---
+
+## 🏗️ Architecture
+
+এই প্রোজেক্টে একটি single entry point (**Gateway**) ব্যবহার করে path অনুযায়ী traffic route করা হয়েছে:
+
+- `http://localhost:8080/red` → `app-red` 🔴
+- `http://localhost:8080/blue` → `app-blue` 🔵
+
+---
+
+## 📂 File Structure
+
+প্রোজেক্টটি modular structure-এ organize করা হয়েছে:
+
+```text
+.
+├── cluster
+│   ├── kind-config.yaml
+│   └── metallb-config.yaml
+├── gateway
+│   ├── gateway-class.yaml
+│   └── gateway-route.yaml
+└── apps
+    └── apps.yaml
+File Description
+File/Folder	Description
+cluster/kind-config.yaml	Multi-node Kind cluster configuration
+cluster/metallb-config.yaml	MetalLB IP address pool configuration
+gateway/gateway-class.yaml	Envoy Gateway controller configuration
+gateway/gateway-route.yaml	Gateway + HTTPRoute traffic routing logic
+apps/apps.yaml	Backend microservices (app-red and app-blue)
+🛠️ Step-by-Step Setup Guide
+
+নিচের command গুলো serially run করে পুরো environment setup করুন।
+
+1. Create the Kind Cluster
 kind create cluster --config cluster/kind-config.yaml
-২. MetalLB (LoadBalancer) সেটআপ
-Bash
-# MetalLB ইনস্টল
-kubectl apply -f [https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml](https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml)
-
-# কিছুক্ষণ অপেক্ষা করে কনফিগারেশন অ্যাপ্লাই করুন
+2. Install and Configure MetalLB
+Install MetalLB
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
+Apply MetalLB Configuration
 kubectl apply -f cluster/metallb-config.yaml
-৩. Envoy Gateway ইনস্টল
-Bash
-# Envoy Gateway এবং প্রয়োজনীয় CRDs ইনস্টল
-kubectl apply --server-side -f [https://github.com/envoyproxy/gateway/releases/download/v1.0.1/install.yaml](https://github.com/envoyproxy/gateway/releases/download/v1.0.1/install.yaml)
-
-# GatewayClass তৈরি
+3. Install Envoy Gateway
+Install Envoy Gateway and Required CRDs
+kubectl apply --server-side -f https://github.com/envoyproxy/gateway/releases/download/v1.0.1/install.yaml
+Create GatewayClass
 kubectl apply -f gateway/gateway-class.yaml
-৪. অ্যাপ এবং রাউটিং ডিপ্লয় করা
-Bash
-# অ্যাপ্লিকেশন ডিপ্লয়
+4. Deploy Applications and Routing
+Deploy Backend Applications
 kubectl apply -f apps/apps.yaml
-
-# গেটওয়ে এবং রুট সেটআপ
+Deploy Gateway and HTTPRoute
 kubectl apply -f gateway/gateway-route.yaml
-🧪 টেস্টিং ও ভেরিফিকেশন (Verification)
-প্রোজেক্টটি রান করার পর নিচের কমান্ডটি দিয়ে একটি পোর্ট-ফরোয়ার্ড টানেল তৈরি করুন:
+🧪 Verification
 
-Bash
+সবকিছু successfully deploy হওয়ার পর নিচের command দিয়ে Envoy Gateway service-এ port-forward করুন:
+
 kubectl port-forward svc/$(kubectl get svc -n envoy-gateway-system --no-headers -o custom-columns=":metadata.name" | grep envoy-default) -n envoy-gateway-system 8080:80
-এখন ব্রাউজারে চেক করুন:
+
+এখন browser-এ নিচের URL গুলো test করুন:
 
 http://localhost:8080/red 🔴
 
-http://localhost:8080/blue thilase? 🔵
+http://localhost:8080/blue 🔵
