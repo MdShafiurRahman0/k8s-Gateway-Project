@@ -1,6 +1,6 @@
 # 🚀 Modern K8s Traffic Management: Gateway API & Envoy Gateway
 
-এই প্রোজেক্টে আমি **Kubernetes-এর next-generation networking standard Gateway API এবং Envoy Gateway** ব্যবহার করে একটি **microservice routing system** তৈরি করেছি।  
+এই প্রোজেক্টে আমি **Kubernetes-এর next-generation networking standard Gateway API এবং Envoy Gateway** ব্যবহার করে একটি **microservice routing system** তৈরি করেছি।
 
 এটি traditional **Ingress**-এর একটি **modern, flexible, এবং powerful alternative**।
 
@@ -8,22 +8,26 @@
 
 # 🎯 Project Purpose & Goals
 
-বর্তমানে Kubernetes networking layer-এ traditional **Ingress**-এর কিছু limitation রয়েছে।  
+বর্তমানে Kubernetes networking layer-এ traditional **Ingress**-এর কিছু limitation রয়েছে।
 এই limitation overcome করার জন্য **Gateway API** ধীরে ধীরে **industry standard** হিসেবে adopt করা হচ্ছে।
 
 এই প্রোজেক্টের মাধ্যমে আমি নিচের বিষয়গুলো implement করেছি:
 
-- **Modern Traffic Management**  
-  traditional Ingress-এর বদলে modern **Gateway** এবং **HTTPRoute** resource ব্যবহার করেছি।
+### Modern Traffic Management
 
-- **Smart Routing**  
-  **Path-based routing** logic ব্যবহার করে incoming traffic different microservice-এ forward করা হয়েছে।
+traditional Ingress-এর বদলে modern **Gateway** এবং **HTTPRoute** resource ব্যবহার করেছি।
 
-- **Separation of Concerns**  
-  infrastructure layer এবং application routing logic আলাদা রাখা হয়েছে।
+### Smart Routing
 
-- **Local Cloud Lab**  
-  **Kind** এবং **MetalLB** ব্যবহার করে local machine-এই **LoadBalancer IP setup** করা হয়েছে।
+**Path-based routing** logic ব্যবহার করে incoming traffic different microservice-এ forward করা হয়েছে।
+
+### Separation of Concerns
+
+infrastructure layer এবং application routing logic আলাদা রাখা হয়েছে।
+
+### Local Cloud Lab
+
+**Kind** এবং **MetalLB** ব্যবহার করে local machine-এই **LoadBalancer IP setup** করা হয়েছে।
 
 ---
 
@@ -31,12 +35,10 @@
 
 এই প্রোজেক্টে একটি **single entry point (Gateway)** ব্যবহার করে path অনুযায়ী traffic route করা হয়েছে।
 
-
-http://localhost:8080/red
- → app-red 🔴
-http://localhost:8080/blue
- → app-blue 🔵
-
+```
+http://localhost:8080/red   →  app-red  🔴
+http://localhost:8080/blue  →  app-blue 🔵
+```
 
 ---
 
@@ -44,29 +46,29 @@ http://localhost:8080/blue
 
 প্রোজেক্টটি **modular structure**-এ organize করা হয়েছে।
 
-
+```
 .
 ├── cluster
-│ ├── kind-config.yaml
-│ └── metallb-config.yaml
+│   ├── kind-config.yaml
+│   └── metallb-config.yaml
 ├── gateway
-│ ├── gateway-class.yaml
-│ └── gateway-route.yaml
+│   ├── gateway-class.yaml
+│   └── gateway-route.yaml
 └── apps
-└── apps.yaml
-
+    └── apps.yaml
+```
 
 ---
 
 # 📄 File Description
 
-| File / Folder | Description |
-|---|---|
-| `cluster/kind-config.yaml` | Multi-node Kind cluster configuration |
-| `cluster/metallb-config.yaml` | MetalLB IP address pool configuration |
-| `gateway/gateway-class.yaml` | Envoy Gateway controller configuration |
-| `gateway/gateway-route.yaml` | Gateway + HTTPRoute traffic routing logic |
-| `apps/apps.yaml` | Backend microservices (app-red and app-blue) |
+| File / Folder                 | Description                                  |
+| ----------------------------- | -------------------------------------------- |
+| `cluster/kind-config.yaml`    | Multi-node Kind cluster configuration        |
+| `cluster/metallb-config.yaml` | MetalLB IP address pool configuration        |
+| `gateway/gateway-class.yaml`  | Envoy Gateway controller configuration       |
+| `gateway/gateway-route.yaml`  | Gateway + HTTPRoute traffic routing logic    |
+| `apps/apps.yaml`              | Backend microservices (app-red and app-blue) |
 
 ---
 
@@ -80,50 +82,93 @@ http://localhost:8080/blue
 
 ```bash
 kind create cluster --config cluster/kind-config.yaml
-2️⃣ Install and Configure MetalLB
-Install MetalLB
+```
+
+---
+
+## 2️⃣ Install and Configure MetalLB
+
+### Install MetalLB
+
+```bash
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
-Apply MetalLB Configuration
+```
+
+### Apply MetalLB Configuration
+
+```bash
 kubectl apply -f cluster/metallb-config.yaml
-3️⃣ Install Envoy Gateway
-Install Envoy Gateway and Required CRDs
+```
+
+---
+
+## 3️⃣ Install Envoy Gateway
+
+### Install Envoy Gateway and Required CRDs
+
+```bash
 kubectl apply --server-side -f https://github.com/envoyproxy/gateway/releases/download/v1.0.1/install.yaml
-Create GatewayClass
+```
+
+### Create GatewayClass
+
+```bash
 kubectl apply -f gateway/gateway-class.yaml
-4️⃣ Deploy Applications and Routing
-Deploy Backend Applications
+```
+
+---
+
+## 4️⃣ Deploy Applications and Routing
+
+### Deploy Backend Applications
+
+```bash
 kubectl apply -f apps/apps.yaml
-Deploy Gateway and HTTPRoute
+```
+
+### Deploy Gateway and HTTPRoute
+
+```bash
 kubectl apply -f gateway/gateway-route.yaml
-🧪 Verification
+```
 
-সবকিছু deploy হওয়ার পর নিচের command দিয়ে Envoy Gateway service-এ port-forward করুন।
+---
 
+# 🧪 Verification
+
+সবকিছু deploy হওয়ার পর নিচের command দিয়ে **Envoy Gateway service-এ port-forward করুন।**
+
+```bash
 kubectl port-forward svc/$(kubectl get svc -n envoy-gateway-system --no-headers -o custom-columns=":metadata.name" | grep envoy-default) -n envoy-gateway-system 8080:80
-🌐 Test the Application
+```
+
+---
+
+# 🌐 Test the Application
 
 এখন browser-এ নিচের URL গুলো test করুন:
 
+```
 http://localhost:8080/red
 http://localhost:8080/blue
-✅ Expected Result
+```
 
-/red path এ গেলে app-red service response দিবে 🔴
+---
 
-/blue path এ গেলে app-blue service response দিবে 🔵
+# ✅ Expected Result
 
-📚 Learning Outcomes
+* `/red` path এ গেলে **app-red service** response দিবে 🔴
+* `/blue` path এ গেলে **app-blue service** response দিবে 🔵
+
+---
+
+# 📚 Learning Outcomes
 
 এই project করার মাধ্যমে নিচের concept গুলো clear হবে:
 
-Kubernetes Gateway API
-
-Envoy Gateway setup
-
-HTTPRoute traffic routing
-
-Path-based microservice routing
-
-Kind local Kubernetes cluster
-
-MetalLB LoadBalancer configuration
+* Kubernetes Gateway API
+* Envoy Gateway setup
+* HTTPRoute traffic routing
+* Path-based microservice routing
+* Kind local Kubernetes cluster
+* MetalLB LoadBalancer configuration
