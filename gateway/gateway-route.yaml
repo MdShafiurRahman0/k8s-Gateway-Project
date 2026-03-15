@@ -1,0 +1,36 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: my-gateway
+spec:
+  gatewayClassName: eg # এটি Envoy Gateway-এর ডিফল্ট ক্লাস
+  listeners:
+  - name: http
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-route
+spec:
+  parentRefs:
+  - name: my-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /red
+    backendRefs:
+    - name: service-red
+      port: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /blue
+    backendRefs:
+    - name: service-blue
+      port: 80

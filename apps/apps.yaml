@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-red
+spec:
+  selector:
+    matchLabels:
+      app: red
+  template:
+    metadata:
+      labels:
+        app: red
+    spec:
+      containers:
+      - name: web
+        image: hashicorp/http-echo
+        args: ["-text=Welcome to the RED app!"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-red
+spec:
+  selector:
+    app: red
+  ports:
+  - port: 80
+    targetPort: 5678
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-blue
+spec:
+  selector:
+    matchLabels:
+      app: blue
+  template:
+    metadata:
+      labels:
+        app: blue
+    spec:
+      containers:
+      - name: web
+        image: hashicorp/http-echo
+        args: ["-text=Welcome to the BLUE app!"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-blue
+spec:
+  selector:
+    app: blue
+  ports:
+  - port: 80
+    targetPort: 5678
